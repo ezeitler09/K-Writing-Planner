@@ -1,0 +1,766 @@
+<!-- K Planner — a backward-planning tool for NIH K award applicants at UNC -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K Planner</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#13294B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="K Planner">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<style>
+  /* self-hosted IBM Plex — no external CDN */
+  @font-face{font-family:"IBM Plex Sans";font-weight:400;font-display:swap;src:url(fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2"),url(fonts/ibm-plex-sans-latin-400-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Sans";font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2"),url(fonts/ibm-plex-sans-latin-500-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Sans";font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2"),url(fonts/ibm-plex-sans-latin-600-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Sans Condensed";font-weight:500;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-latin-500-normal.woff2) format("woff2"),url(fonts/ibm-plex-sans-condensed-latin-500-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Sans Condensed";font-weight:600;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-latin-600-normal.woff2) format("woff2"),url(fonts/ibm-plex-sans-condensed-latin-600-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Sans Condensed";font-weight:700;font-display:swap;src:url(fonts/ibm-plex-sans-condensed-latin-700-normal.woff2) format("woff2"),url(fonts/ibm-plex-sans-condensed-latin-700-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url(fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2"),url(fonts/ibm-plex-mono-latin-400-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url(fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2"),url(fonts/ibm-plex-mono-latin-500-normal.woff) format("woff")}
+  @font-face{font-family:"IBM Plex Mono";font-weight:600;font-display:swap;src:url(fonts/ibm-plex-mono-latin-600-normal.woff2) format("woff2"),url(fonts/ibm-plex-mono-latin-600-normal.woff) format("woff")}
+
+  :root{
+    --paper:#F7F6F2;
+    --rule:#E0E2DD;
+    --ink:#16202A;
+    --muted:#6B7785;
+    --carolina:#4B9CD3;
+    --navy:#13294B;
+    --hard:#B02A1F;
+    --done:#3F7C56;
+
+    --sans:"IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+    --cond:"IBM Plex Sans Condensed", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--paper);
+    background-image:linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+    background-size:100% 28px;
+    color:var(--ink);
+    font:400 16px/1.5 var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 96px}
+
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:36px 0 18px;border-bottom:2px solid var(--navy);margin-bottom:28px}
+  .mark{font:700 30px/1 var(--cond);letter-spacing:.02em;text-transform:uppercase}
+  .mark b{color:var(--carolina)}
+  .tag{font:500 12px/1 var(--mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .sub{flex:1 1 100%;color:var(--muted);font-size:14.5px;max-width:56ch;margin-top:6px}
+
+  .setup{background:#fff;border:1px solid var(--rule);border-radius:3px;padding:22px 22px 18px;margin-bottom:34px;box-shadow:0 1px 0 rgba(19,41,75,.05)}
+  .eyebrow{font:600 11px/1 var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--navy);margin:0 0 16px;display:flex;align-items:center;gap:10px}
+  .eyebrow::after{content:"";flex:1;height:1px;background:var(--rule)}
+  .fields{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  label{font:600 11px/1 var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  select,input[type=date],input[type=number]{font:400 15px/1 var(--sans);color:var(--ink);background:#fff;border:1px solid #C9CDC7;border-radius:2px;padding:9px 10px;width:100%}
+  input[type=date],input[type=number]{font-family:var(--mono);font-size:14px}
+  select:focus-visible,input:focus-visible,button:focus-visible,.item:focus-visible,.day:focus-visible{outline:2px solid var(--carolina);outline-offset:2px}
+  .quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+  .quick span{font-size:12.5px;color:var(--muted);font-family:var(--mono)}
+  .chip{font:500 12.5px/1 var(--mono);background:#fff;border:1px solid #C9CDC7;border-radius:2px;padding:7px 10px;cursor:pointer;color:var(--navy)}
+  .chip:hover{border-color:var(--carolina);color:var(--carolina)}
+  .leads{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;padding-top:16px;border-top:1px dashed var(--rule)}
+  .hint{font-size:12.5px;color:var(--muted);line-height:1.45;margin:0}
+  .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+  button.primary{font:600 13px/1 var(--cond);letter-spacing:.1em;text-transform:uppercase;background:var(--navy);color:#fff;border:0;border-radius:2px;padding:13px 22px;cursor:pointer}
+  button.primary:hover{background:#1d3a66}
+  button.ghost{font:600 13px/1 var(--cond);letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--navy);border:1px solid #C9CDC7;border-radius:2px;padding:13px 18px;cursor:pointer}
+  button.ghost:hover{border-color:var(--navy)}
+
+  #out[hidden]{display:none}
+  .countdown{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:18px}
+  .bignum{font:600 76px/.85 var(--mono);letter-spacing:-.03em;color:var(--hard);font-variant-numeric:tabular-nums}
+  .bigunit{font:600 13px/1.4 var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-bottom:6px}
+  .bigunit em{display:block;font-style:normal;color:var(--ink);font-family:var(--mono);font-size:14px;letter-spacing:0;text-transform:none;margin-top:5px}
+  .ic-note{flex:1 1 300px;font-size:13.5px;color:var(--muted);border-left:2px solid var(--carolina);padding:2px 0 2px 14px;max-width:44ch;margin:0}
+
+  .sect{margin-top:34px}
+  .sect h4{font:600 11px/1 var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--navy);margin:0 0 16px;display:flex;align-items:center;gap:10px}
+  .sect h4::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+  /* ---------- calendar ---------- */
+  .behind{margin:0 0 22px;padding:12px 14px;background:#FBF6EC;border:1px solid #EADFC8;border-left:3px solid #C7761B;border-radius:3px}
+  .behind[hidden]{display:none}
+  .behind p{margin:0 0 9px;font:400 13px/1.4 var(--sans);color:#7A5518}
+  .behind p b{font-weight:600}
+  .behind .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .behind button{font:500 11.5px/1 var(--mono);background:#fff;border:1px solid #E3D6BC;border-radius:2px;padding:6px 8px;cursor:pointer;color:#7A5518;text-align:left}
+  .behind button:hover{border-color:#C7761B}
+  .behind button.sel{border-color:#C7761B;background:#F5E9D4}
+  .behind button span{color:#A88A55;margin-right:6px}
+
+  .cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:22px 26px}
+  .mo h5{font:600 12px/1 var(--cond);letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px;color:var(--ink)}
+  .mo h5 span{color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:0;margin-left:5px}
+  .grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .dow{font:500 10px/1 var(--mono);color:#A9AFA7;text-align:center;padding-bottom:5px}
+  .day{height:26px;display:flex;align-items:center;justify-content:center;font:400 12px/1 var(--mono);color:var(--muted);border-radius:2px;border:0;background:transparent;padding:0;font-variant-numeric:tabular-nums}
+  .day.blank{visibility:hidden}
+  .day.wknd{color:#BFC5BC}
+  .day.today{box-shadow:inset 0 0 0 1.5px var(--ink);color:var(--ink);font-weight:600}
+  .day.mark{cursor:pointer;font-weight:600}
+  .day.mark.step{background:#E9F2F9;color:var(--navy);box-shadow:inset 0 0 0 1px #C9DFEF}
+  .day.mark.spo,.day.mark.cayuse{background:var(--carolina);color:#fff}
+  .day.mark.deadline{background:var(--hard);color:#fff}
+  .day.mark:hover{filter:brightness(.94)}
+  .day.sel{outline:2px solid var(--ink);outline-offset:1px}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;font:400 12.5px/1 var(--sans);color:var(--muted);align-items:center}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+  .legend .l1{background:#E9F2F9;box-shadow:inset 0 0 0 1px #C9DFEF}
+  .legend .l2{background:var(--carolina)}
+  .legend .l3{background:var(--hard)}
+
+  .detail{margin-top:26px;background:#fff;border:1px solid var(--rule);border-left:3px solid var(--carolina);border-radius:3px;padding:18px 20px}
+  .detail.deadline{border-left-color:var(--hard)}
+  .detail .meta{font:500 11.5px/1 var(--mono);color:var(--muted);letter-spacing:.02em;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .detail .meta .off{color:var(--navy)}
+  .detail.deadline .meta .off{color:var(--hard)}
+  .detail h3{font:600 19px/1.3 var(--sans);margin:7px 0 10px}
+  .detail.deadline h3{color:var(--hard)}
+  .detail ul{margin:0;padding-left:18px;color:var(--muted);font-size:14.5px}
+  .detail li{margin:4px 0}
+  .detail .shift{color:var(--carolina)}
+  .nudge{font:400 12.5px/1 var(--sans);color:var(--muted);margin-top:14px}
+
+  /* ---------- checklist ---------- */
+  .meter{height:3px;background:var(--rule);border-radius:2px;overflow:hidden;margin:0 0 26px}
+  .meter i{display:block;height:100%;background:var(--done);width:0;transition:width .25s ease}
+  .meter-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .meter-label b{font:600 11px/1 var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--navy)}
+  .meter-label span{font:500 13px/1 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+  .lists{display:grid;grid-template-columns:1fr 1fr;gap:20px 44px;align-items:start}
+  .group{margin-bottom:26px;break-inside:avoid}
+  .group h6{font:600 11px/1 var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--navy);margin:0 0 10px;display:flex;align-items:center;gap:10px}
+  .group h6 .due{font-family:var(--mono);font-size:11px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400}
+  .group h6::after{content:"";flex:1;height:1px;background:var(--rule)}
+  .item{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(224,226,221,.7);cursor:pointer}
+  .item:last-child{border-bottom:0}
+  .box{flex:0 0 auto;width:16px;height:16px;margin-top:3px;border:1.5px solid #A9AFA7;border-radius:2px;background:#fff;position:relative}
+  .item[aria-checked=true] .box{background:var(--done);border-color:var(--done)}
+  .item[aria-checked=true] .box::after{content:"";position:absolute;left:4.5px;top:1px;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(43deg)}
+  .item[aria-checked=true] .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:#BFC5BC}
+  .txt{font-size:14.5px;line-height:1.45}
+  .txt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;text-decoration:none}
+  .pill{font:500 10.5px/1 var(--mono);color:var(--navy);background:#EBF3F9;border:1px solid #D3E4F1;border-radius:2px;padding:3px 5px;margin-left:6px;white-space:nowrap;vertical-align:1px}
+  .pill.opt{color:var(--muted);background:#F1F1EE;border-color:var(--rule)}
+  .pill.new{color:var(--hard);background:#FBEEEC;border-color:#F0D5D1}
+
+  footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;max-width:70ch}
+
+  @media (max-width:860px){
+    .fields{grid-template-columns:1fr 1fr}
+    .lists{grid-template-columns:1fr;gap:0}
+    .bignum{font-size:60px}
+  }
+  @media (max-width:520px){
+    .fields{grid-template-columns:1fr}
+    .leads{grid-template-columns:1fr}
+    .cal{grid-template-columns:1fr 1fr;gap:18px}
+  }
+
+  .reveal{animation:rise .34s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.reveal{animation:none}*{transition:none!important}}
+
+  @media print{
+    body{background:#fff}
+    .setup,.actions,footer,.nudge{display:none}
+    .item{break-inside:avoid}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mark">K <b>Planner</b></div>
+    <div class="tag">UNC · NIH career development awards</div>
+    <p class="sub">Give it four answers. It works backward from the NIH deadline and gives you a calendar, the internal deadlines, and everything you have to hand to somebody else.</p>
+  </header>
+
+  <section class="setup">
+    <p class="eyebrow">Your application</p>
+    <div class="fields">
+      <div class="field">
+        <label for="ic">NIH institute</label>
+        <select id="ic"></select>
+      </div>
+      <div class="field">
+        <label for="mech">Mechanism</label>
+        <select id="mech">
+          <option value="K08">K08 — laboratory / basic</option>
+          <option value="K23">K23 — patient-oriented</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="type">Application type</label>
+        <select id="type">
+          <option value="new">New</option>
+          <option value="resub">Resubmission (A1)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="due">NIH due date</label>
+        <input type="date" id="due">
+      </div>
+    </div>
+
+    <div class="quick"><span>Standard dates:</span></div>
+
+    <div class="leads">
+      <div class="field">
+        <label for="spoLead">Sponsored programs packet — days before</label>
+        <input type="number" id="spoLead" value="10" min="1" max="45">
+        <p class="hint">Title, budget, budget justification, statement of work, draft abstract. Usually 10–12 days out.</p>
+      </div>
+      <div class="field">
+        <label for="cayLead">Cayuse package complete — days before</label>
+        <input type="number" id="cayLead" value="5" min="1" max="30">
+        <p class="hint">Everything else, uploaded. Usually 5–7 days out. Confirm both with your grants manager.</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="go">Build my calendar</button>
+      <button class="ghost" id="ics" hidden>Export to .ics</button>
+      <button class="ghost" id="exp" hidden>Export progress</button>
+      <button class="ghost" id="imp" hidden>Import progress</button>
+      <button class="ghost" id="prn" hidden>Print</button>
+      <button class="ghost" id="rst" hidden>Clear checkmarks</button>
+      <input type="file" id="impFile" accept="application/json,.json" style="display:none">
+    </div>
+    <p class="hint" id="ioMsg" style="margin-top:12px" hidden></p>
+  </section>
+
+  <div id="out" hidden>
+    <div class="countdown">
+      <div class="bignum" id="days">—</div>
+      <div class="bigunit">days out<em id="dueLine"></em></div>
+      <p class="ic-note" id="icNote"></p>
+    </div>
+
+    <div class="sect">
+      <h4>Calendar</h4>
+      <div class="behind" id="behind" hidden></div>
+      <div class="cal" id="cal"></div>
+      <div class="legend">
+        <span><i class="l1"></i>Milestone</span>
+        <span><i class="l2"></i>Internal deadline</span>
+        <span><i class="l3"></i>NIH deadline</span>
+        <span style="font-family:var(--mono);font-size:11.5px">Weekend dates shift to the Friday before.</span>
+      </div>
+      <div class="detail" id="detail"></div>
+      <p class="nudge">Click any marked day to see what's due.</p>
+    </div>
+
+    <div class="sect">
+      <div class="meter-label"><b>Checklist</b><span id="pct">0 / 0</span></div>
+      <div class="meter"><i id="bar"></i></div>
+      <div class="lists" id="list"></div>
+    </div>
+  </div>
+
+  <footer>
+    Dates are computed from the deadline you enter; NIH applications are due by 5:00 p.m. local time of the applicant organization. Standard K dates roll to the next business day when they fall on a weekend or federal holiday — this tool handles weekends, not holidays. Internal deadlines vary by department. Confirm them with your grants manager and your program officer before you rely on them.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var mem = {};
+  var store = {
+    get: async function(k){
+      try{ var r = await window.storage.get(k); return r ? JSON.parse(r.value) : null; }
+      catch(e){ return (k in mem) ? mem[k] : null; }
+    },
+    set: async function(k,v){
+      mem[k]=v;
+      try{ await window.storage.set(k, JSON.stringify(v)); }catch(e){}
+    }
+  };
+
+  var ICS = [
+    ["NIDDK","National Institute of Diabetes and Digestive and Kidney Diseases"],
+    ["NHLBI","National Heart, Lung, and Blood Institute"],
+    ["NCI","National Cancer Institute"],
+    ["NIA","National Institute on Aging"],
+    ["NIAID","National Institute of Allergy and Infectious Diseases"],
+    ["NIAMS","National Institute of Arthritis and Musculoskeletal and Skin Diseases"],
+    ["NICHD","National Institute of Child Health and Human Development"],
+    ["NIMH","National Institute of Mental Health"],
+    ["NINDS","National Institute of Neurological Disorders and Stroke"],
+    ["NIGMS","National Institute of General Medical Sciences"],
+    ["NIEHS","National Institute of Environmental Health Sciences"],
+    ["NIBIB","National Institute of Biomedical Imaging and Bioengineering"],
+    ["NIDCR","National Institute of Dental and Craniofacial Research"],
+    ["NEI","National Eye Institute"],
+    ["Other","Another institute or center"]
+  ];
+  var IC_NOTE = {
+    NIDDK:"NIDDK encourages K awardees to attend its K Awardees' Workshop — ask your grants manager to build travel funds into year 1 of the budget.",
+    _:"Institutes differ on effort requirements, salary and direct cost caps, and whether they accept your mechanism at all. Email your program officer before you write anything."
+  };
+
+  function parse(s){ var p=s.split("-"); return new Date(Date.UTC(+p[0],+p[1]-1,+p[2])); }
+  function iso(d){ return d.toISOString().slice(0,10); }
+  function minus(d,n){ var x=new Date(d); x.setUTCDate(x.getUTCDate()-n); return x; }
+  function isWeekend(d){ var g=d.getUTCDay(); return g===0||g===6; }
+  function backToBusiness(d){ var x=new Date(d); while(isWeekend(x)) x=minus(x,1); return x; }
+  function fwdToBusiness(d){ var x=new Date(d); while(isWeekend(x)) x.setUTCDate(x.getUTCDate()+1); return x; }
+  var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+      MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      MONL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  function fmt(d){ return DOW[d.getUTCDay()]+" · "+MON[d.getUTCMonth()]+" "+d.getUTCDate()+", "+d.getUTCFullYear(); }
+  function todayUTC(){ var n=new Date(); return new Date(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())); }
+  function daysBetween(a,b){ return Math.round((b-a)/864e5); }
+
+  function standardDates(type){
+    var months = type==="resub" ? [2,6,10] : [1,5,9];
+    var t=todayUTC(), out=[];
+    for(var y=t.getUTCFullYear(); out.length<3 && y<=t.getUTCFullYear()+2; y++){
+      months.forEach(function(m){
+        var d=fwdToBusiness(new Date(Date.UTC(y,m,12)));
+        if(d>t && out.length<3) out.push(d);
+      });
+    }
+    return out;
+  }
+
+  function milestones(cfg){
+    var D=cfg.due, resub=cfg.type==="resub", k23=cfg.mech==="K23";
+    var m=[
+      {off:180,title:"Talk to your program officer",todo:[
+        "Send a paragraph on the science and ask whether the mechanism and institute fit.",
+        "Ask what this institute funds and what it pays."]},
+      {off:120,title:"Lock in the mentorship team",todo:[
+        "Get a written yes from your mentor and co-mentors.",
+        "Name your scientific advisory committee.",
+        "Pick 3–5 referees. Mentors and co-mentors cannot be referees."]},
+      {off:90,title:"Open the accounts, start the paperwork",todo:[
+        "Confirm your eRA Commons account is active and affiliated with UNC.",
+        "Ask sponsored programs to open the proposal record.",
+        "Start biosketches in SciENcv — Common Forms format is required, and it takes longer than you think."]},
+      {off:70,title:resub?"Specific Aims final; Introduction drafted":"Specific Aims final",todo:resub
+        ? ["Freeze the aims — everything downstream depends on them.",
+           "Map every critique in the summary statement to a specific change.",
+           "Draft the 1-page Introduction to Application."]
+        : ["Freeze the aims — everything downstream depends on them.",
+           "Circulate them to your mentors and advisory committee."]},
+      {off:56,title:"Ask for everything you don't write yourself",todo:[
+        "Email your referees with the aims, your biosketch, and the deadline."+
+          (resub?" Tell them explicitly: last cycle's letters do NOT carry over — each of them must submit again in eRA Commons, even an unchanged letter.":""),
+        "Request mentor and co-mentor statements (6 pages, combined).",
+        "Request collaborator and consultant letters.",
+        "Request the institutional environment and institutional commitment letters."]},
+      {off:42,title:"Full draft to your mentors",todo:[
+        "Candidate section plus Research Strategy — 12 pages, combined.",
+        "Give reviewers at least two weeks. They will use all of it."]},
+      {off:28,title:"Regulatory and compliance sections",todo:(k23
+        ? ["Human Subjects and Clinical Trials form; inclusion enrollment plans.",
+           "Confirm IRB status and, if it's a trial, ClinicalTrials.gov registration plans."]
+        : ["Vertebrate Animals section; confirm IACUC protocol status.",
+           "Human Subjects and Clinical Trials form, if you touch human tissue or data.",
+           "Authentication of Key Biological and/or Chemical Resources."]
+        ).concat(["Data Management and Sharing Plan."])},
+      {off:21,title:"Final science revisions",todo:[
+        "Fold in mentor comments; freeze the Research Strategy.",
+        "Collect biosketches and Other Support from every key person.",
+        "Check that reference letters have started arriving in eRA Commons."]},
+      {off:cfg.spoLead,kind:"spo",title:"Sponsored programs packet due",todo:[
+        "Confirm the project title.",
+        "Confirm the budget and how you're staying under the direct cost limit.",
+        "Budget justification, statement of work, draft abstract.",
+        "Decide on travel funds and which year they sit in."]},
+      {off:cfg.cayLead,kind:"cayuse",title:"Cayuse package complete",todo:[
+        "Every document uploaded — cover letter through PHS assignment request.",
+        "Nothing left that depends on somebody else."]},
+      {off:2,title:"Confirm the letters",todo:[
+        "Every reference letter shows as received in eRA Commons. Chase the ones that don't."+
+          (resub?" Remember: prior-cycle letters are not carried forward — a referee who hasn't resubmitted shows as missing.":""),
+        "Read the assembled application image, cover to cover."]},
+      {off:0,kind:"deadline",title:"NIH deadline",todo:[
+        "Due by 5:00 p.m. local time of the applicant organization.",
+        "There is no correction window after the deadline."]}
+    ];
+    return m.map(function(x){
+      var raw=minus(D,x.off);
+      var d = x.kind==="deadline" ? raw : backToBusiness(raw);
+      x.date=d; x.iso=iso(d); x.shifted=(+d !== +raw);
+      return x;
+    }).sort(function(a,b){ return a.date-b.date; });
+  }
+
+  function checklist(cfg){
+    var resub=cfg.type==="resub", k23=cfg.mech==="K23";
+    var g=[];
+
+    g.push({name:"Before you write",items:[
+      {t:"Program officer contacted; mechanism confirmed"},
+      {t:"eRA Commons account active and affiliated with UNC"},
+      {t:"Proposal record open with sponsored programs"},
+      {t:"Mentor and co-mentors committed in writing"},
+      {t:"3–5 referees identified", n:"Mentors and co-mentors may not serve as referees."}
+    ].concat(resub?[
+      {t:"Referees told they must resubmit their letters", p:["A1","new"], n:"Reference letters from the prior submission are NOT reused. Each referee submits again in eRA Commons, even if the letter is unchanged."},
+      {t:"Summary statement read; each critique mapped to a change", p:["A1","new"]}
+    ]:[])});
+
+    g.push({name:"What you write",items:[].concat(resub?[
+      {t:"Introduction to Application", p:["1 pg","new"]}
+    ]:[],[
+      {t:"Specific Aims", p:["1 pg"]},
+      {t:"Candidate Information and Goals for Career Development, incl. Research Strategy", p:["12 pg"]},
+      {t:"Project Abstract / Summary", p:["30 lines"]},
+      {t:"Project Narrative", p:["3 sentences"]},
+      {t:"Training in Responsible Conduct of Research", p:["1 pg"]},
+      {t:"Bibliography and References Cited"},
+      {t:"Cover letter, including the list of referees"},
+      {t:"PHS Assignment Request", p:["optional","opt"]}
+    ])});
+
+    g.push({name:"What other people write",items:[
+      {t:"Reference letters submitted in eRA Commons", n:resub?"Letters do NOT carry over from the prior submission. Every referee must submit again in eRA Commons — even the identical letter.":"3–5 letters, submitted directly by the referee, by the due date."},
+      {t:"Plans and Statements of Mentor and Co-Mentor", p:["6 pg"]},
+      {t:"Letters of Support from collaborators, contributors, consultants", p:["6 pg"]},
+      {t:"Description of Institutional Environment", p:["1 pg"]},
+      {t:"Institutional Commitment to Candidate's Research Career Development", p:["1 pg"]},
+      {t:"Biosketches for all key personnel", n:"SciENcv Common Forms format required."},
+      {t:"Current and Pending (Other) Support for mentors and co-mentors"},
+      {t:"Facilities and Other Resources"},
+      {t:"Equipment"}
+    ]});
+
+    var comp=[{t:"Data Management and Sharing Plan"}];
+    if(k23){
+      comp.push(
+        {t:"Human Subjects and Clinical Trials form"},
+        {t:"Inclusion of women, minorities, and individuals across the lifespan"},
+        {t:"IRB approval or pending status documented"},
+        {t:"ClinicalTrials.gov registration plan", p:["if a trial","opt"]}
+      );
+    } else {
+      comp.push(
+        {t:"Vertebrate Animals", n:"Include IACUC protocol status."},
+        {t:"Human Subjects and Clinical Trials form", n:"Required if you use human tissue, biospecimens, or identifiable data."},
+        {t:"Inclusion of women, minorities, and individuals across the lifespan", p:["if human subjects","opt"]},
+        {t:"Authentication of Key Biological and/or Chemical Resources"}
+      );
+    }
+    comp.push(
+      {t:"Select Agent Research", p:["if applicable","opt"]},
+      {t:"Resource Sharing", p:["if applicable","opt"]}
+    );
+    g.push({name:"Compliance",items:comp});
+
+    g.push({name:"Sponsored programs packet",due:cfg.spoLead+" days out",items:[
+      {t:"Project title confirmed"},
+      {t:"Budget confirmed within direct cost limits"},
+      {t:"Budget justification"},
+      {t:"Statement of work"},
+      {t:"Draft abstract"},
+      {t:"Travel funds decided", n:cfg.ic==="NIDDK"?"NIDDK K Awardees' Workshop — typically ~$1,500, usually in year 1.":"Ask whether your institute expects meeting travel in the budget."}
+    ]});
+
+    g.push({name:"Final week",due:"2 days out",items:[
+      {t:"All reference letters received in eRA Commons"},
+      {t:"Assembled application image reviewed"},
+      {t:"Submitted before 5:00 p.m. local time"}
+    ]});
+
+    return g;
+  }
+
+  var $=function(s){return document.querySelector(s)};
+  var state={checked:{}}, current=null, ms=[], selected=null;
+
+  var icSel=$("#ic");
+  ICS.forEach(function(x){ var o=document.createElement("option"); o.value=x[0]; o.textContent=x[0]+" — "+x[1]; icSel.appendChild(o); });
+
+  function drawQuick(){
+    var q=$(".quick"); q.innerHTML='<span>Standard dates:</span>';
+    standardDates($("#type").value).forEach(function(d){
+      var b=document.createElement("button");
+      b.className="chip"; b.type="button";
+      b.textContent=MON[d.getUTCMonth()]+" "+d.getUTCDate()+", "+d.getUTCFullYear();
+      b.onclick=function(){ $("#due").value=iso(d); };
+      q.appendChild(b);
+    });
+  }
+  $("#type").addEventListener("change",drawQuick);
+  drawQuick();
+
+  function cfgFromForm(){
+    var s=+$("#spoLead").value||10, c=+$("#cayLead").value||5;
+    if(c>=s) c=Math.max(1,s-2);
+    $("#cayLead").value=c;
+    return { ic:$("#ic").value, mech:$("#mech").value, type:$("#type").value,
+             dueStr:$("#due").value, spoLead:s, cayLead:c };
+  }
+
+  /* ---------- calendar ---------- */
+  function upcoming(){
+    var t=todayUTC();
+    return ms.filter(function(m){ return m.date>=t; });
+  }
+  function past(){
+    var t=todayUTC();
+    return ms.filter(function(m){ return m.date<t; });
+  }
+
+  function drawBehind(){
+    var el=$("#behind"), gone=past();
+    if(!gone.length){ el.hidden=true; el.innerHTML=""; return; }
+    el.hidden=false;
+    var n=gone.length;
+    el.innerHTML='<p><b>'+n+' milestone'+(n>1?"s":"")+' already behind you.</b> '+
+      (n>=6?"You're starting late. Talk to your program officer and your mentors this week, and be honest about whether this cycle is the right one."
+           :"Not fatal — but check what you skipped before you build the rest of the schedule around it.")+
+      '</p><div class="chips"></div>';
+    var chips=el.querySelector(".chips");
+    gone.forEach(function(m){
+      var b=document.createElement("button");
+      b.type="button";
+      b.innerHTML='<span>'+MON[m.date.getUTCMonth()]+" "+m.date.getUTCDate()+'</span>'+m.title;
+      if(selected===m.iso) b.className="sel";
+      b.onclick=function(){ selected=m.iso; drawCal(); drawBehind(); drawDetail(); };
+      chips.appendChild(b);
+    });
+  }
+
+  function drawCal(){
+    var byDate={}; ms.forEach(function(m){ byDate[m.iso]=m; });
+    var ahead=upcoming();
+    var first=(ahead[0]||ms[ms.length-1]).date, last=ms[ms.length-1].date, tIso=iso(todayUTC());
+    var cal=$("#cal"); cal.innerHTML="";
+
+    var y=first.getUTCFullYear(), mo=first.getUTCMonth(), n=0;
+    while(y<last.getUTCFullYear() || (y===last.getUTCFullYear() && mo<=last.getUTCMonth())){
+      var box=document.createElement("div");
+      box.className="mo reveal"; box.style.animationDelay=(n*40)+"ms";
+      var h=document.createElement("h5");
+      h.innerHTML=MONL[mo]+' <span>'+y+'</span>';
+      box.appendChild(h);
+
+      var grid=document.createElement("div"); grid.className="grid7";
+      ["S","M","T","W","T","F","S"].forEach(function(d){
+        var c=document.createElement("div"); c.className="dow"; c.textContent=d; grid.appendChild(c);
+      });
+      var startDay=new Date(Date.UTC(y,mo,1)).getUTCDay();
+      var lastDay=new Date(Date.UTC(y,mo+1,0)).getUTCDate();
+      for(var b=0;b<startDay;b++){ var x=document.createElement("div"); x.className="day blank"; grid.appendChild(x); }
+      for(var d=1;d<=lastDay;d++){
+        var dt=new Date(Date.UTC(y,mo,d)), key=iso(dt), hit=byDate[key];
+        var cell=document.createElement(hit?"button":"div");
+        cell.className="day"+(isWeekend(dt)?" wknd":"")+(key===tIso?" today":"");
+        cell.textContent=d;
+        if(hit){
+          cell.className+=" mark "+(hit.kind||"step");
+          cell.type="button";
+          cell.title=hit.title;
+          cell.setAttribute("aria-label",fmt(dt)+" — "+hit.title);
+          cell.dataset.iso=key;
+          if(selected===key) cell.className+=" sel";
+          cell.onclick=function(){ selected=this.dataset.iso; drawCal(); drawBehind(); drawDetail(); };
+        }
+        grid.appendChild(cell);
+      }
+      box.appendChild(grid); cal.appendChild(box);
+      n++; mo++; if(mo>11){ mo=0; y++; }
+    }
+  }
+
+  function drawDetail(){
+    var m=ms.filter(function(x){return x.iso===selected})[0] || ms[ms.length-1];
+    var el=$("#detail");
+    el.className="detail"+(m.kind==="deadline"?" deadline":"");
+    var offTxt = m.off===0 ? "Deadline" : "D − "+m.off+" days";
+    var isPast = m.date < todayUTC();
+    el.innerHTML=
+      '<div class="meta"><span class="off">'+offTxt+'</span><span>'+fmt(m.date)+'</span>'+
+      (isPast?'<span class="shift" style="color:#C7761B">already passed</span>':'')+
+      (m.shifted?'<span class="shift">moved off the weekend</span>':'')+'</div>'+
+      '<h3></h3><ul></ul>';
+    el.querySelector("h3").textContent=m.title;
+    var ul=el.querySelector("ul");
+    m.todo.forEach(function(t){ var li=document.createElement("li"); li.textContent=t; ul.appendChild(li); });
+  }
+
+  function render(cfg){
+    cfg.due=parse(cfg.dueStr);
+    current=cfg;
+    ms=milestones(cfg);
+
+    var today=todayUTC();
+    var next=upcoming()[0] || ms[ms.length-1];
+    selected=next.iso;
+
+    var left=daysBetween(today,cfg.due);
+    $("#days").textContent = left>=0 ? left : "0";
+    $("#dueLine").textContent = fmt(cfg.due)+" · 5:00 p.m.";
+    $("#icNote").textContent = IC_NOTE[cfg.ic] || IC_NOTE._;
+
+    drawBehind(); drawCal(); drawDetail();
+
+    var list=$("#list"); list.innerHTML="";
+    var groups=checklist(cfg), total=0;
+    groups.forEach(function(gr,gi){
+      var sec=document.createElement("div"); sec.className="group";
+      var h=document.createElement("h6"); h.textContent=gr.name;
+      if(gr.due){ var dd=document.createElement("span"); dd.className="due"; dd.textContent="· "+gr.due; h.appendChild(dd); }
+      sec.appendChild(h);
+      gr.items.forEach(function(it,ii){
+        total++;
+        var id="g"+gi+"i"+ii;
+        var row=document.createElement("div");
+        row.className="item"; row.tabIndex=0; row.setAttribute("role","checkbox");
+        row.setAttribute("aria-checked", state.checked[id]?"true":"false");
+        row.innerHTML='<span class="box"></span><span class="txt"></span>';
+        var txt=row.querySelector(".txt");
+        txt.appendChild(document.createTextNode(it.t));
+        if(it.p) txt.insertAdjacentHTML("beforeend",'<span class="pill '+(it.p[1]||"")+'">'+it.p[0]+'</span>');
+        if(it.n){ var s=document.createElement("small"); s.textContent=it.n; txt.appendChild(s); }
+        function toggle(){
+          var on = row.getAttribute("aria-checked")==="true";
+          row.setAttribute("aria-checked", on?"false":"true");
+          state.checked[id]=!on; store.set("kplanner:checked",state.checked); meter();
+        }
+        row.onclick=toggle;
+        row.onkeydown=function(e){ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); toggle(); } };
+        sec.appendChild(row);
+      });
+      list.appendChild(sec);
+    });
+
+    function meter(){
+      var done=list.querySelectorAll('.item[aria-checked=true]').length;
+      $("#pct").textContent=done+" / "+total;
+      $("#bar").style.width=(total?done/total*100:0)+"%";
+    }
+    meter();
+
+    $("#out").hidden=false;
+    ["#ics","#exp","#imp","#prn","#rst"].forEach(function(s){ $(s).hidden=false; });
+    store.set("kplanner:setup",{ic:cfg.ic,mech:cfg.mech,type:cfg.type,dueStr:cfg.dueStr,spoLead:cfg.spoLead,cayLead:cfg.cayLead});
+  }
+
+  function esc(s){ return String(s).replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n"); }
+  function makeICS(){
+    var L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//UNC//K Planner//EN","CALSCALE:GREGORIAN"];
+    var stamp=new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+    upcoming().forEach(function(m,i){
+      var s=m.iso.replace(/-/g,""), e=iso(minus(m.date,-1)).replace(/-/g,"");
+      L.push("BEGIN:VEVENT",
+        "UID:kplanner-"+i+"-"+s+"@unc",
+        "DTSTAMP:"+stamp,
+        "DTSTART;VALUE=DATE:"+s,
+        "DTEND;VALUE=DATE:"+e,
+        "SUMMARY:"+esc((m.kind==="deadline"?"":"K award · ")+m.title),
+        "DESCRIPTION:"+esc(m.todo.map(function(t){return "• "+t}).join("\n")),
+        "BEGIN:VALARM","TRIGGER:-P2D","ACTION:DISPLAY","DESCRIPTION:"+esc(m.title),"END:VALARM",
+        "END:VEVENT");
+    });
+    L.push("END:VCALENDAR");
+    return L.join("\r\n");
+  }
+
+  $("#go").onclick=function(){
+    var cfg=cfgFromForm();
+    if(!cfg.dueStr){ $("#due").focus(); $("#due").style.borderColor="var(--hard)"; return; }
+    $("#due").style.borderColor="";
+    render(cfg);
+    $("#out").scrollIntoView({behavior:"smooth",block:"start"});
+  };
+  $("#ics").onclick=function(){
+    if(!current) return;
+    var blob=new Blob([makeICS()],{type:"text/calendar"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=current.mech.toLowerCase()+"-"+current.dueStr+".ics";
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+  $("#prn").onclick=function(){ window.print(); };
+  $("#rst").onclick=function(){ state.checked={}; store.set("kplanner:checked",{}); if(current) render(current); };
+
+  /* ---------- export / import progress ---------- */
+  function flash(msg,bad){
+    var el=$("#ioMsg");
+    el.hidden=false; el.textContent=msg;
+    el.style.color = bad ? "var(--hard)" : "var(--done)";
+    clearTimeout(flash._t);
+    flash._t=setTimeout(function(){ el.hidden=true; }, 6000);
+  }
+
+  $("#exp").onclick=function(){
+    if(!current) return;
+    var payload={
+      app:"k-planner", schema:1,
+      exportedAt:new Date().toISOString(),
+      setup:{ic:current.ic,mech:current.mech,type:current.type,dueStr:current.dueStr,spoLead:current.spoLead,cayLead:current.cayLead},
+      checked:state.checked
+    };
+    var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="k-planner-progress-"+current.dueStr+".json";
+    a.click(); URL.revokeObjectURL(a.href);
+    flash("Progress exported. Keep this file as a backup or move it to another device.");
+  };
+
+  $("#imp").onclick=function(){ $("#impFile").value=""; $("#impFile").click(); };
+  $("#impFile").onchange=function(e){
+    var f=e.target.files && e.target.files[0];
+    if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      var data;
+      try{ data=JSON.parse(r.result); }
+      catch(err){ flash("That file isn't valid K Planner progress.",true); return; }
+      if(!data || data.app!=="k-planner" || !data.setup || !data.setup.dueStr){
+        flash("That file isn't valid K Planner progress.",true); return;
+      }
+      var doneCount=data.checked?Object.keys(data.checked).filter(function(k){return data.checked[k]}).length:0;
+      if(current){
+        var ok=window.confirm("Import will replace your current setup and "+
+          "checkmarks with the imported file ("+doneCount+" item"+(doneCount===1?"":"s")+" checked). Continue?");
+        if(!ok) return;
+      }
+      var s=data.setup;
+      state.checked=data.checked||{};
+      $("#ic").value=s.ic; $("#mech").value=s.mech; $("#type").value=s.type;
+      $("#due").value=s.dueStr;
+      $("#spoLead").value=s.spoLead||10; $("#cayLead").value=s.cayLead||5;
+      store.set("kplanner:checked",state.checked);
+      drawQuick(); render(cfgFromForm());
+      $("#out").scrollIntoView({behavior:"smooth",block:"start"});
+      flash("Progress imported"+(data.exportedAt?" (saved "+data.exportedAt.slice(0,10)+")":"")+".");
+    };
+    r.readAsText(f);
+  };
+
+  (async function(){
+    var c=await store.get("kplanner:checked"); if(c) state.checked=c;
+    var s=await store.get("kplanner:setup");
+    if(s && s.dueStr){
+      $("#ic").value=s.ic; $("#mech").value=s.mech; $("#type").value=s.type;
+      $("#due").value=s.dueStr; $("#spoLead").value=s.spoLead; $("#cayLead").value=s.cayLead;
+      drawQuick(); render(cfgFromForm());
+    }
+  })();
+
+  /* ---------- service worker (offline + installable) ---------- */
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+})();
+</script>
