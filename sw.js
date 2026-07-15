@@ -1,5 +1,5 @@
 /* K Planner service worker — bump CACHE when files change */
-const CACHE = "kplanner-v1";
+const CACHE = "kplanner-v2";
 const ASSETS = [
   "./",
   "./index.html",
