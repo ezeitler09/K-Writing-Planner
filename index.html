@@ -355,12 +355,13 @@
            "Draft the 1-page Introduction to Application."]
         : ["Freeze the aims — everything downstream depends on them.",
            "Circulate them to your mentors and advisory committee."]},
-      {off:56,title:"Ask for everything you don't write yourself",todo:[
-        "Email your referees with the aims, your biosketch, and the deadline."+
+      {off:56,title:"Get your drafts to the people who sign them",todo:[
+        "Draft the mentor and co-mentor statements (6 pages, combined) and send them to your mentors to revise.",
+        "Draft the institutional commitment letter for your chair or division chief.",
+        "Send collaborators a draft letter of support rather than a blank request.",
+        "Email your referees with the aims and your biosketch."+
           (resub?" Tell them explicitly: last cycle's letters do NOT carry over — each of them must submit again in eRA Commons, even an unchanged letter.":""),
-        "Request mentor and co-mentor statements (6 pages, combined).",
-        "Request collaborator and consultant letters.",
-        "Request the institutional environment and institutional commitment letters."]},
+        "These come back slower than you expect. This is the step that runs late."]},
       {off:42,title:"Full draft to your mentors",todo:[
         "Candidate section plus Research Strategy — 12 pages, combined.",
         "Give reviewers at least two weeks. They will use all of it."]},
@@ -414,7 +415,7 @@
       {t:"Summary statement read; each critique mapped to a change", p:["A1","new"]}
     ]:[])});
 
-    g.push({name:"What you write",items:[].concat(resub?[
+    g.push({name:"You write, start to finish",items:[].concat(resub?[
       {t:"Introduction to Application", p:["1 pg","new"]}
     ]:[],[
       {t:"Specific Aims", p:["1 pg"]},
@@ -424,19 +425,24 @@
       {t:"Training in Responsible Conduct of Research", p:["1 pg"]},
       {t:"Bibliography and References Cited"},
       {t:"Cover letter, including the list of referees"},
+      {t:"Description of Institutional Environment", p:["1 pg"]},
+      {t:"Facilities and Other Resources"},
+      {t:"Equipment"},
       {t:"PHS Assignment Request", p:["optional","opt"]}
     ])});
 
-    g.push({name:"What other people write",items:[
-      {t:"Reference letters submitted in eRA Commons", n:resub?"Letters do NOT carry over from the prior submission. Every referee must submit again in eRA Commons — even the identical letter.":"3–5 letters, submitted directly by the referee, by the due date."},
-      {t:"Plans and Statements of Mentor and Co-Mentor", p:["6 pg"]},
-      {t:"Letters of Support from collaborators, contributors, consultants", p:["6 pg"]},
-      {t:"Description of Institutional Environment", p:["1 pg"]},
-      {t:"Institutional Commitment to Candidate's Research Career Development", p:["1 pg"]},
-      {t:"Biosketches for all key personnel", n:"SciENcv Common Forms format required."},
-      {t:"Current and Pending (Other) Support for mentors and co-mentors"},
-      {t:"Facilities and Other Resources"},
-      {t:"Equipment"}
+    g.push({name:"You draft, someone else signs",items:[
+      {t:"Plans and Statements of Mentor and Co-Mentor", p:["6 pg"], n:"Usually drafted by you, then revised and signed by your mentors. Build in time for their edits."},
+      {t:"Institutional Commitment to Candidate's Research Career Development", p:["1 pg"], n:"Typically drafted by you, then reviewed and signed by your chair or division chief."},
+      {t:"Letters of Support from collaborators, contributors, consultants", p:["6 pg"], n:"Collaborators often want a draft to work from. Send one."},
+      {t:"Reference letters submitted in eRA Commons", n:resub
+        ? "Referees commonly ask for a draft or bullet points, but the letter is theirs and they submit it directly. Note: letters do NOT carry over from the prior submission — every referee must submit again, even an identical letter."
+        : "3–5 letters. Referees commonly ask for a draft or bullet points, but the letter is theirs and they submit it directly in eRA Commons by the due date."}
+    ]});
+
+    g.push({name:"Your grants manager handles",items:[
+      {t:"Biosketches for all key personnel", n:"SciENcv Common Forms format required. Your manager will collect these — but yours is on you, and SciENcv takes longer than you'd think."},
+      {t:"Current and Pending (Other) Support for mentors and co-mentors", n:"Usually compiled for you. You mostly just confirm the list of people."}
     ]});
 
     var comp=[{t:"Data Management and Sharing Plan"}];
